@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Student Sri Lanka - National Academic Portal</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float-slow': 'float 6s ease-in-out infinite',
+            'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .glass-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-glow {
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 60%, transparent 100%);
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
+
+  <!-- STICKY GLASSMORPHISM NAVBAR -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 glass-nav transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" onclick="switchTab('home')" class="flex items-center space-x-3 group">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform duration-300">
+          <i class="fa-solid fa-graduation-cap text-xl"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+            SMART<span class="text-brand-600 dark:text-brand-500">STUDENT</span>
+          </span>
+          <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mt-0.5">Sri Lanka Academic Portal</span>
+        </div>
+      </a>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-2 font-semibold text-sm">
+        <button onclick="switchTab('home')" id="nav-home" class="nav-tab-btn px-5 py-2.5 rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/20 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-house text-xs"></i>
+          <span>Home</span>
+        </button>
+        <button onclick="switchTab('grades')" id="nav-grades" class="nav-tab-btn px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-layer-group text-xs"></i>
+          <span>Grades & Subjects</span>
+        </button>
+        <button onclick="switchTab('materials')" id="nav-materials" class="nav-tab-btn px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-book-open text-xs"></i>
+          <span>Study Materials</span>
+        </button>
+      </nav>
+
+      <!-- Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- Live Connection Badge -->
+        <span id="supabaseStatusBadge" class="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-300 dark:border-emerald-700/50 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Supabase Cloud Live</span>
+        </span>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggle" onclick="toggleTheme()" class="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm" title="Toggle Theme">
+          <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+          <i class="fa-solid fa-sun text-lg hidden dark:block text-amber-400"></i>
+        </button>
+
+        <!-- Mobile Menu Trigger -->
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileMenu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-2">
+      <button onclick="switchTab('home'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+        <i class="fa-solid fa-house mr-2 text-brand-500"></i> Home
+      </button>
+      <button onclick="switchTab('grades'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+        <i class="fa-solid fa-layer-group mr-2 text-brand-500"></i> Grades & Subjects
+      </button>
+      <button onclick="switchTab('materials'); toggleMobileMenu()" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+        <i class="fa-solid fa-book-open mr-2 text-brand-500"></i> Study Materials
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN TAB CONTENT CONTAINER -->
+  <main class="flex-grow">
+
+    <!-- ==================== TAB 1: HOME ==================== -->
+    <div id="tab-content-home" class="tab-page">
+      
+      <!-- HERO SECTION -->
+      <section class="relative overflow-hidden py-16 lg:py-24 hero-glow">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-brand-500/15 to-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left Branding & Headline -->
+            <div class="lg:col-span-7 text-center lg:text-left space-y-6">
+              <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/40 border border-brand-200 dark:border-brand-700/50 text-brand-700 dark:text-brand-300 text-xs font-bold tracking-wider uppercase shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-brand-500 animate-ping"></span>
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Direct Supabase Multi-Device Cloud Sync</span>
+              </div>
+
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-slate-900 dark:text-white">
+                Empowering Students in <br class="hidden sm:inline" /><span class="gradient-text">Smart Student Sri Lanka</span>
+              </h1>
+
+              <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
+                The ultimate national academic portal for Grade 6 to Grade 10 students. Upload notes, sync real-time database files, and track downloads across all devices instantly.
+              </p>
+
+              <!-- Quick CTA Buttons -->
+              <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                <button onclick="switchTab('materials')" class="px-7 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/25 transition-all hover:-translate-y-0.5 flex items-center space-x-2">
+                  <i class="fa-solid fa-book-open"></i>
+                  <span>Browse Study Materials</span>
+                </button>
+                <button onclick="switchTab('grades')" class="px-7 py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all flex items-center space-x-2">
+                  <i class="fa-solid fa-list-check text-brand-500"></i>
+                  <span>Explore 13 Core Subjects</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Professional Image/Graphic -->
+            <div class="lg:col-span-5 flex justify-center">
+              <div class="relative w-full max-w-md">
+                <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 animate-float-slow">
+                  <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="Students studying together" class="w-full h-72 sm:h-80 object-cover rounded-2xl">
+                  
+                  <div class="p-5">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="px-3 py-1 bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 text-xs font-bold rounded-full">Grade 6 - 10 Curriculum</span>
+                      <span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-cloud text-emerald-500 text-xs mr-1"></i> Supabase Active</span>
+                    </div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">National Syllabus Aligned</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Tamil, Sinhala & English Medium Support.</p>
+                  </div>
+                </div>
+
+                <div class="absolute -bottom-5 -left-5 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 flex items-center space-x-3 hidden sm:flex animate-pulse-subtle">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white">Cloud Database</p>
+                    <p class="text-[10px] text-slate-500">Multi-Device Live Sync</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- REVIEWS & TESTIMONIALS SECTION -->
+      <section class="py-16 bg-slate-100/70 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+            <div>
+              <h2 class="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400 mb-2">Student Feedback</h2>
+              <p class="text-3xl font-extrabold text-slate-900 dark:text-white">What Students Say About Us</p>
+            </div>
+            <button onclick="openReviewModal()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center space-x-2 self-start sm:self-auto">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>+ Add Review</span>
+            </button>
+          </div>
+
+          <!-- Reviews Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="reviewsGrid">
+            
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div>
+                <div class="flex items-center space-x-1 text-amber-400 mb-3 text-xs">
+                  <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-300 italic mb-6">
+                  "Smart Student Sri Lanka made preparing for my Grade 9 term tests so much easier. Uploads appear instantly across my phone and laptop!"
+                </p>
+              </div>
+              <div class="flex items-center space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/60">
+                <div class="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-sm">
+                  K
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-slate-900 dark:text-white">Kavindu Wickramasinghe</h4>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Grade 9 Student • Kandy</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div>
+                <div class="flex items-center space-x-1 text-amber-400 mb-3 text-xs">
+                  <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-300 italic mb-6">
+                  "I love that the study materials are available in Tamil medium as well. Downloads are super fast and reliable!"
+                </p>
+              </div>
+              <div class="flex items-center space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/60">
+                <div class="w-10 h-10 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-sm">
+                  F
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-slate-900 dark:text-white">Fathima Rinsiya</h4>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Grade 10 Student • Vavuniya</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div>
+                <div class="flex items-center space-x-1 text-amber-400 mb-3 text-xs">
+                  <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-300 italic mb-6">
+                  "As a teacher, I recommend this portal to all Grade 6, 7 and 8 students in our school for term-end revision practice."
+                </p>
+              </div>
+              <div class="flex items-center space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/60">
+                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-sm">
+                  S
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-slate-900 dark:text-white">S. Tharmalingam</h4>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">ICT Teacher • Jaffna</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- ==================== TAB 2: GRADES & SUBJECTS ==================== -->
+    <div id="tab-content-grades" class="tab-page hidden">
+      <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center max-w-3xl mx-auto mb-10 space-y-3">
+          <h2 class="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">13 Official Main Subjects</h2>
+          <p class="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">Secondary Curriculum (Grades 6 - 10)</p>
+          <p class="text-slate-600 dark:text-slate-400 text-sm">Select a grade below to filter subjects, or click a subject card to view its PDF materials.</p>
+        </div>
+
+        <!-- Grade Selection Buttons (Strictly Grade 6 to 10 ONLY) -->
+        <div class="flex flex-wrap justify-center gap-3 mb-12" id="gradeButtonsContainer">
+          <button onclick="selectGradeFilter('all')" class="grade-filter-btn active px-6 py-3 rounded-2xl font-bold text-sm bg-brand-600 text-white shadow-lg transition-all">
+            All Grades (6-10)
+          </button>
+          <button onclick="selectGradeFilter('Grade 6')" class="grade-filter-btn px-6 py-3 rounded-2xl font-bold text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-all">
+            Grade 6
+          </button>
+          <button onclick="selectGradeFilter('Grade 7')" class="grade-filter-btn px-6 py-3 rounded-2xl font-bold text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-all">
+            Grade 7
+          </button>
+          <button onclick="selectGradeFilter('Grade 8')" class="grade-filter-btn px-6 py-3 rounded-2xl font-bold text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-all">
+            Grade 8
+          </button>
+          <button onclick="selectGradeFilter('Grade 9')" class="grade-filter-btn px-6 py-3 rounded-2xl font-bold text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-all">
+            Grade 9
+          </button>
+          <button onclick="selectGradeFilter('Grade 10')" class="grade-filter-btn px-6 py-3 rounded-2xl font-bold text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-all">
+            Grade 10
+          </button>
+        </div>
+
+        <!-- 13 Subject Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="subjectCardsGrid">
+          
+          <!-- 1. Tamil (First Language) -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Tamil (First Language)</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Literature, grammar, essay writing, and poetry analysis for Tamil medium curriculum.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 01</span>
+              <button onclick="jumpToMaterialSubject('Tamil (First Language)')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 2. Maths -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-calculator"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Maths (Mathematics)</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Algebra, Geometry, Perimeter, Fractions & Data Handling units for Grade 6 to 10.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 02</span>
+              <button onclick="jumpToMaterialSubject('Maths (Mathematics)')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 3. Science -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-flask"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Science</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Biological processes, Physical science laws, Chemistry elements and lab experiments.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 03</span>
+              <button onclick="jumpToMaterialSubject('Science')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 4. English -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-language"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">English</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">English Language & Literature: Grammar, vocabulary, comprehension, and essays.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 04</span>
+              <button onclick="jumpToMaterialSubject('English')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 5. History -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-landmark"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">History</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Ancient Sri Lankan kingdoms, archaeological heritage, world historical events & maps.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 05</span>
+              <button onclick="jumpToMaterialSubject('History')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 6. Religion -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-hands-praying"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Religion</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Buddhism, Hinduism, Islam, or Christianity religious syllabus & ethics studies.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 06</span>
+              <button onclick="jumpToMaterialSubject('Religion')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 7. Health -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Health & Physical Ed.</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Personal health, nutrition, sports skills, human anatomy, and physical wellness.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 07</span>
+              <button onclick="jumpToMaterialSubject('Health')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 8. Civics -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-scale-balanced"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Civics</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Civic education, citizenship duties, governance, human rights, and social values.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 08</span>
+              <button onclick="jumpToMaterialSubject('Civics')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 9. Geography -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-earth-americas"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Geography</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Physical geography, weather patterns, Sri Lankan topographies, maps, and climate.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 09</span>
+              <button onclick="jumpToMaterialSubject('Geography')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 10. Aesthetic Studies -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-palette"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Aesthetic Studies</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Includes sub-subjects: Music, Art, Oriental & Western Dance, and Drama & Theatre.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 10</span>
+              <button onclick="jumpToMaterialSubject('Aesthetic Studies')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 11. ICT -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-computer"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">ICT</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Information and Communication Technology: Algorithms, computers, spreadsheets & web.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 11</span>
+              <button onclick="jumpToMaterialSubject('ICT')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 12. PTS -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">PTS</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Practical and Technical Skills: Woodwork, agriculture, home economics, and crafts.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 12</span>
+              <button onclick="jumpToMaterialSubject('PTS')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+          <!-- 13. Sinhala -->
+          <div class="subject-card bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1" data-grades="Grade 6 Grade 7 Grade 8 Grade 9 Grade 10">
+            <div class="w-12 h-12 rounded-2xl bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 flex items-center justify-center text-xl font-bold mb-4">
+              <i class="fa-solid fa-book"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Sinhala (Second Language)</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">Sinhala as a second language for Tamil medium students: Grammar and conversations.</p>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-500">Main Subject 13</span>
+              <button onclick="jumpToMaterialSubject('Sinhala (Second Language)')" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">View Files &rarr;</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ==================== TAB 3: STUDY MATERIALS ==================== -->
+    <div id="tab-content-materials" class="tab-page hidden">
+      <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header & + Add PDF Button -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Study Materials & Notes</h2>
+            <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Live cloud storage. Uploaded PDFs appear instantly on all student devices.</p>
+          </div>
+          
+          <button onclick="openUploadModal()" class="px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/25 transition-all hover:scale-105 flex items-center space-x-2 self-start md:self-auto">
+            <i class="fa-solid fa-file-circle-plus text-lg"></i>
+            <span>+ Add PDF</span>
+          </button>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div class="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          
+          <!-- Search box -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search Title</label>
+            <div class="relative">
+              <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+              <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="Search PDF title..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+            </div>
+          </div>
+
+          <!-- Grade Filter -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Grade</label>
+            <select id="filterGrade" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">All Grades (6-10)</option>
+              <option value="Grade 6">Grade 6</option>
+              <option value="Grade 7">Grade 7</option>
+              <option value="Grade 8">Grade 8</option>
+              <option value="Grade 9">Grade 9</option>
+              <option value="Grade 10">Grade 10</option>
+            </select>
+          </div>
+
+          <!-- Subject Filter -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Subject</label>
+            <select id="filterSubject" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">All 13 Subjects</option>
+              <option value="Tamil (First Language)">Tamil (First Language)</option>
+              <option value="Maths (Mathematics)">Maths (Mathematics)</option>
+              <option value="Science">Science</option>
+              <option value="English">English</option>
+              <option value="History">History</option>
+              <option value="Religion">Religion</option>
+              <option value="Health">Health & Physical Ed.</option>
+              <option value="Civics">Civics</option>
+              <option value="Geography">Geography</option>
+              <option value="Aesthetic Studies">Aesthetic Studies</option>
+              <option value="ICT">ICT</option>
+              <option value="PTS">PTS</option>
+              <option value="Sinhala (Second Language)">Sinhala (Second Language)</option>
+            </select>
+          </div>
+
+          <!-- Term Filter -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Term</label>
+            <select id="filterTerm" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">All Terms</option>
+              <option value="Term 1">Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
+            </select>
+          </div>
+
+          <!-- Language / Medium Filter -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Language</label>
+            <select id="filterLanguage" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">All Languages</option>
+              <option value="Tamil">Tamil</option>
+              <option value="Sinhala">Sinhala</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Materials Table Container -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                  <th class="py-4 px-6">Document Title</th>
+                  <th class="py-4 px-4">Grade</th>
+                  <th class="py-4 px-4">Subject</th>
+                  <th class="py-4 px-4">Term & Lang</th>
+                  <th class="py-4 px-4 text-center">Downloads</th>
+                  <th class="py-4 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="materialsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm">
+                <!-- Dynamically Rendered Records from Supabase -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div id="materialsEmptyState" class="hidden py-16 text-center">
+            <div class="w-16 h-16 rounded-3xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto mb-4 text-2xl animate-bounce">
+              <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h3 class="font-bold text-slate-800 dark:text-white text-base">No Study Materials Found</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Try changing your filters or click "+ Add PDF" to upload the first file.</p>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </main>
+
+
+  <!-- ==================== UPLOAD MODAL (BULK PDF FAST UPLOAD) ==================== -->
+  <div id="uploadModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Fast Upload PDFs (Bulk Supported)</h3>
+        </div>
+        <button onclick="closeUploadModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <div class="p-6 space-y-4 overflow-y-auto flex-grow">
+        
+        <!-- File Picker -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select PDF File(s) *</label>
+          <input type="file" id="uploadFilesInput" multiple accept="application/pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/40 dark:file:text-brand-300 hover:file:bg-brand-100 cursor-pointer border border-slate-200 dark:border-slate-700 rounded-2xl p-2 bg-slate-50 dark:bg-slate-900">
+          <p class="text-[10px] text-slate-400 mt-1">Select multiple PDF files for ultra-fast batch upload. Filenames convert to titles automatically.</p>
+        </div>
+
+        <!-- Default Grade selection for batch -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Default Grade *</label>
+            <select id="uploadGrade" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+              <option value="Grade 6">Grade 6</option>
+              <option value="Grade 7">Grade 7</option>
+              <option value="Grade 8">Grade 8</option>
+              <option value="Grade 9">Grade 9</option>
+              <option value="Grade 10" selected>Grade 10</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Default Term *</label>
+            <select id="uploadTerm" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+              <option value="Term 1" selected>Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Subject *</label>
+            <select id="uploadSubject" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+              <option value="Tamil (First Language)">Tamil (First Language)</option>
+              <option value="Maths (Mathematics)" selected>Maths (Mathematics)</option>
+              <option value="Science">Science</option>
+              <option value="English">English</option>
+              <option value="History">History</option>
+              <option value="Religion">Religion</option>
+              <option value="Health">Health & Physical Ed.</option>
+              <option value="Civics">Civics</option>
+              <option value="Geography">Geography</option>
+              <option value="Aesthetic Studies">Aesthetic Studies</option>
+              <option value="ICT">ICT</option>
+              <option value="PTS">PTS</option>
+              <option value="Sinhala (Second Language)">Sinhala (Second Language)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Language *</label>
+            <select id="uploadLanguage" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+              <option value="Tamil" selected>Tamil</option>
+              <option value="Sinhala">Sinhala</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Progress status indicator -->
+        <div id="uploadProgressBox" class="hidden p-3 rounded-xl bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-700 dark:text-brand-300 text-center">
+          <i class="fa-solid fa-spinner fa-spin mr-2"></i> <span id="uploadProgressText">High-speed upload in progress...</span>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end space-x-3">
+        <button onclick="closeUploadModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          Cancel
+        </button>
+        <button onclick="executeFastUpload()" id="uploadSubmitBtn" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Fast Upload to Cloud</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ==================== EDIT TITLE MODAL ==================== -->
+  <div id="editTitleModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Edit Document Title</h3>
+        <button onclick="closeEditTitleModal()" class="p-2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <input type="hidden" id="editMaterialId">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">New Document Title</label>
+        <input type="text" id="editMaterialTitleInput" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand-500">
+      </div>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button onclick="closeEditTitleModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300">Cancel</button>
+        <button onclick="saveEditedTitle()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== REVIEW SUBMISSION MODAL ==================== -->
+  <div id="reviewModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Add Student Review</h3>
+        <button onclick="closeReviewModal()" class="p-2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Your Name *</label>
+          <input type="text" id="reviewName" placeholder="e.g. S. Varun" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Grade & School *</label>
+          <input type="text" id="reviewSchool" placeholder="e.g. Grade 8 • Jaffna" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Your Review *</label>
+          <textarea id="reviewText" rows="3" placeholder="Write your experience..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold"></textarea>
+        </div>
+        <button onclick="submitReviewCard()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">Submit Review</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <span class="text-white font-extrabold text-sm tracking-tight">Smart Student Sri Lanka</span>
+          <p class="text-[10px] text-slate-500">Grade 6-10 National Academic Cloud Portal</p>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500">&copy; 2026 Smart Student Sri Lanka. All rights reserved. Powered by Supabase Cloud.</p>
+    </div>
+  </footer>
+
+
+  <!-- ==================== JAVASCRIPT LOGIC & FAST UPLOAD ==================== -->
+  <script>
+    // SUPABASE CONFIGURATION (Using your provided publishable key)
+    const SUPABASE_URL = "https://dnoszekrxejupiixdhv.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_qzKG--IIYDHm1ksuE49XJg_teBpSJda";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let globalMaterials = [];
+    let currentGradeFilter = 'all';
+
+    // Initialize application on load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchMaterialsFromSupabase();
+    });
+
+    // Theme Toggle
+    function toggleTheme() {
+      const htmlEl = document.documentElement;
+      if (htmlEl.classList.contains('dark')) {
+        htmlEl.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        htmlEl.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+
+    // Mobile Menu Toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Tab Switcher
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
+      document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+
+      // Update Nav buttons styling
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.className = "nav-tab-btn px-5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center space-x-2";
+      });
+      const activeBtn = document.getElementById(`nav-${tabName}`);
+      if(activeBtn) {
+        activeBtn.className = "nav-tab-btn px-5 py-2.5 rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/20 transition-all flex items-center space-x-2";
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Grade Filter Buttons on Grades & Subjects Tab
+    function selectGradeFilter(grade) {
+      currentGradeFilter = grade;
+      document.querySelectorAll('.grade-filter-btn').forEach(btn => {
+        btn.className = "grade-filter-btn px-6 py-3 rounded-2xl font-bold text-sm bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-brand-500 transition-all";
+      });
+      event.target.className = "grade-filter-btn active px-6 py-3 rounded-2xl font-bold text-sm bg-brand-600 text-white shadow-lg transition-all";
+
+      const cards = document.querySelectorAll('.subject-card');
+      cards.forEach(card => {
+        const gradesAttr = card.getAttribute('data-grades');
+        if (grade === 'all' || gradesAttr.includes(grade)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Jump from Subject Card to Study Materials Tab filtered by subject
+    function jumpToMaterialSubject(subjectName) {
+      switchTab('materials');
+      document.getElementById('filterSubject').value = subjectName;
+      applyFilters();
+    }
+
+
+    // ==================== SUPABASE FETCH MATERIALS ====================
+    async function fetchMaterialsFromSupabase() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('study_materials')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Supabase fetch error:", error);
+          globalMaterials = [];
+        } else {
+          globalMaterials = data || [];
+        }
+        renderMaterialsTable(globalMaterials);
+      } catch (err) {
+        console.error("Network or connection error:", err);
+        globalMaterials = [];
+        renderMaterialsTable(globalMaterials);
+      }
+    }
+
+
+    // ==================== RENDER TABLE ====================
+    function renderMaterialsTable(items) {
+      const tbody = document.getElementById('materialsTableBody');
+      const emptyState = document.getElementById('materialsEmptyState');
+      tbody.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors";
+
+        const downloadsCount = item.downloads || 0;
+
+        tr.innerHTML = `
+          <td class="py-4 px-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+              <div>
+                <span class="font-bold text-slate-900 dark:text-white block">${escapeHtml(item.title)}</span>
+                <span class="text-[11px] text-slate-400">PDF Document</span>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-4 font-semibold text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.grade)}</td>
+          <td class="py-4 px-4 font-semibold text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.subject)}</td>
+          <td class="py-4 px-4">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold mr-1">${escapeHtml(item.term)}</span>
+            <span class="px-2.5 py-1 rounded-lg bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-[11px] font-bold">${escapeHtml(item.medium)}</span>
+          </td>
+          <td class="py-4 px-4 text-center">
+            <span class="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold">
+              <i class="fa-solid fa-download text-[10px] mr-1"></i> ${downloadsCount}
+            </span>
+          </td>
+          <td class="py-4 px-6 text-right space-x-2">
+            <button onclick="openEditTitleModal('${item.id}', '${escapeHtml(item.title).replace(/'/g, "\\'")}')" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-brand-50 hover:text-brand-600 transition-colors" title="Edit Title">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+            <button onclick="downloadPdfFile('${item.id}', '${item.file_url}', '${escapeHtml(item.title).replace(/'/g, "\\'")}', ${downloadsCount})" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all hover:scale-105 inline-flex items-center space-x-1.5">
+              <i class="fa-solid fa-download text-xs"></i>
+              <span>Download</span>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+
+    // ==================== FILTER ENGINE ====================
+    function applyFilters() {
+      const searchTxt = document.getElementById('filterSearch').value.toLowerCase();
+      const gradeVal = document.getElementById('filterGrade').value;
+      const subjectVal = document.getElementById('filterSubject').value;
+      const termVal = document.getElementById('filterTerm').value;
+      const langVal = document.getElementById('filterLanguage').value;
+
+      const filtered = globalMaterials.filter(item => {
+        const matchesSearch = item.title.toLowerCase().includes(searchTxt);
+        const matchesGrade = (gradeVal === 'all' || item.grade === gradeVal);
+        const matchesSubject = (subjectVal === 'all' || item.subject === subjectVal);
+        const matchesTerm = (termVal === 'all' || item.term === termVal);
+        const matchesLang = (langVal === 'all' || item.medium === langVal);
+
+        return matchesSearch && matchesGrade && matchesSubject && matchesTerm && matchesLang;
+      });
+
+      renderMaterialsTable(filtered);
+    }
+
+
+    // ==================== FAST BULK UPLOAD MODAL & LOGIC ====================
+    function openUploadModal() {
+      document.getElementById('uploadModal').classList.remove('hidden');
+    }
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.add('hidden');
+      document.getElementById('uploadFilesInput').value = '';
+      document.getElementById('uploadProgressBox').classList.add('hidden');
+    }
+
+    async function executeFastUpload() {
+      const fileInput = document.getElementById('uploadFilesInput');
+      const files = fileInput.files;
+
+      if (!files || files.length === 0) {
+        alert("Please select at least one PDF file to upload.");
+        return;
+      }
+
+      const grade = document.getElementById('uploadGrade').value;
+      const term = document.getElementById('uploadTerm').value;
+      const subject = document.getElementById('uploadSubject').value;
+      const medium = document.getElementById('uploadLanguage').value;
+
+      const progressBox = document.getElementById('uploadProgressBox');
+      const progressText = document.getElementById('uploadProgressText');
+      const submitBtn = document.getElementById('uploadSubmitBtn');
+
+      progressBox.classList.remove('hidden');
+      submitBtn.disabled = true;
+
+      let successCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        progressText.textContent = `Fast Uploading [${i + 1}/${files.length}]: ${file.name}...`;
+
+        let cleanTitle = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+
+        try {
+          const filePath = `pdf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${file.name}`;
+          
+          // High-speed optimized storage upload with cache controls
+          const { data: storageData, error: storageError } = await supabaseClient.storage
+            .from('pdfs')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (storageError) {
+            console.error("Storage error:", storageError);
+            continue;
+          }
+
+          const { data: publicUrlData } = supabaseClient.storage
+            .from('pdfs')
+            .getPublicUrl(filePath);
+
+          const fileUrl = publicUrlData.publicUrl;
+
+          const { error: dbError } = await supabaseClient
+            .from('study_materials')
+            .insert([{
+              title: cleanTitle,
+              grade: grade,
+              term: term,
+              subject: subject,
+              medium: medium,
+              file_url: fileUrl,
+              downloads: 0
+            }]);
+
+          if (!dbError) {
+            successCount++;
+          }
+        } catch (err) {
+          console.error("Upload exception:", err);
+        }
+      }
+
+      progressBox.classList.add('hidden');
+      submitBtn.disabled = false;
+      closeUploadModal();
+
+      alert(`Successfully uploaded ${successCount} of ${files.length} PDF(s) at high speed!`);
+      fetchMaterialsFromSupabase();
+    }
+
+
+    // ==================== EDIT TITLE ====================
+    function openEditTitleModal(id, currentTitle) {
+      document.getElementById('editMaterialId').value = id;
+      document.getElementById('editMaterialTitleInput').value = currentTitle;
+      document.getElementById('editTitleModal').classList.remove('hidden');
+    }
+    function closeEditTitleModal() {
+      document.getElementById('editTitleModal').classList.add('hidden');
+    }
+    async function saveEditedTitle() {
+      const id = document.getElementById('editMaterialId').value;
+      const newTitle = document.getElementById('editMaterialTitleInput').value.trim();
+
+      if (!newTitle) {
+        alert("Title cannot be empty.");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from('study_materials')
+        .update({ title: newTitle })
+        .eq('id', id);
+
+      if (error) {
+        alert("Failed to update title in Supabase: " + error.message);
+      } else {
+        closeEditTitleModal();
+        fetchMaterialsFromSupabase();
+      }
+    }
+
+
+    // ==================== DOWNLOAD & COUNTER INCREMENT ====================
+    async function downloadPdfFile(id, fileUrl, title, currentDownloads) {
+      const newCount = currentDownloads + 1;
+      await supabaseClient
+        .from('study_materials')
+        .update({ downloads: newCount })
+        .eq('id', id);
+
+      const anchor = document.createElement('a');
+      anchor.href = fileUrl;
+      anchor.target = '_blank';
+      anchor.download = title + ".pdf";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+
+      fetchMaterialsFromSupabase();
+    }
+
+
+    // ==================== REVIEWS MODAL ====================
+    function openReviewModal() {
+      document.getElementById('reviewModal').classList.remove('hidden');
+    }
+    function closeReviewModal() {
+      document.getElementById('reviewModal').classList.add('hidden');
+    }
+    function submitReviewCard() {
+      const name = document.getElementById('reviewName').value.trim();
+      const school = document.getElementById('reviewSchool').value.trim();
+      const text = document.getElementById('reviewText').value.trim();
+
+      if (!name || !school || !text) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const grid = document.getElementById('reviewsGrid');
+      const card = document.createElement('div');
+      card.className = "bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between";
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center space-x-1 text-amber-400 mb-3 text-xs">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-300 italic mb-6">"${escapeHtml(text)}"</p>
+        </div>
+        <div class="flex items-center space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700/60">
+          <div class="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-sm">
+            ${name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(name)}</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400">${escapeHtml(school)}</p>
+          </div>
+        </div>
+      `;
+      grid.prepend(card);
+      closeReviewModal();
+      document.getElementById('reviewName').value = '';
+      document.getElementById('reviewSchool').value = '';
+      document.getElementById('reviewText').value = '';
+      alert("Thank you! Your review has been added.");
+    }
+
+    // Helper to prevent XSS
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
